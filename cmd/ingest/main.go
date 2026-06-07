@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"strings"
 
 	"github.com/linka-ai/gragit/internal/rag/chunking"
 	"github.com/linka-ai/gragit/internal/rag/config"
@@ -56,18 +53,7 @@ and save the FAISS bundle under ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>
 				return err
 			}
 
-			if !ingestFlagsChanged(cmd) {
-				printIngestSettings(settings)
-				ok, err := confirmIngest(os.Stdin, os.Stdout)
-				if err != nil {
-					log.Printf("ERROR ingest: %v", err)
-					return err
-				}
-				if !ok {
-					fmt.Println("Cancelled.")
-					return nil
-				}
-			}
+			printIngestSettings(settings)
 
 			if err := runIngest(settings); err != nil {
 				log.Printf("ERROR ingest: %v", err)
@@ -90,10 +76,6 @@ type ingestSettings struct {
 	cfg       config.Config
 	clonePath string
 	indexPath string
-}
-
-func ingestFlagsChanged(cmd *cobra.Command) bool {
-	return cmd.Flags().Changed("remote") || cmd.Flags().Changed("branch")
 }
 
 func resolveIngestSettings(remote, branch string) (ingestSettings, error) {
@@ -138,32 +120,6 @@ func printIngestSettings(s ingestSettings) {
 	fmt.Printf("  CHUNK_OVERLAP:             %d\n", s.cfg.ChunkOverlap)
 	fmt.Printf("  EMBED_BATCH_SIZE:          %d\n", s.cfg.EmbedBatchSize)
 	fmt.Printf("  EMBED_WORKERS:             %d\n", s.cfg.EmbedWorkers)
-}
-
-func confirmIngest(in io.Reader, out io.Writer) (bool, error) {
-	if f, ok := in.(*os.File); ok && !isTerminal(f) {
-		return false, fmt.Errorf("non-interactive stdin; pass --remote (-r) and/or --branch (-b) to skip confirmation")
-	}
-
-	fmt.Fprint(out, "Proceed with ingest? [y/N]: ")
-	answer, err := bufio.NewReader(in).ReadString('\n')
-	if err != nil && err != io.EOF {
-		return false, fmt.Errorf("read confirmation: %w", err)
-	}
-	switch strings.ToLower(strings.TrimSpace(answer)) {
-	case "y", "yes":
-		return true, nil
-	default:
-		return false, nil
-	}
-}
-
-func isTerminal(f *os.File) bool {
-	fi, err := f.Stat()
-	if err != nil {
-		return false
-	}
-	return fi.Mode()&os.ModeCharDevice != 0
 }
 
 func runIngest(s ingestSettings) error {
