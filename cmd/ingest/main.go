@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/linka-ai/gragit/internal/rag/chunking"
 	"github.com/linka-ai/gragit/internal/rag/config"
@@ -47,7 +50,26 @@ func newIngestCmd() *cobra.Command {
 branch under ~/.gragit/repos/<host>/<owner>/<repo>/<branch>, index the clone,
 and save the FAISS bundle under ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			if err := runIngest(remoteName, branchName); err != nil {
+			settings, err := resolveIngestSettings(remoteName, branchName)
+			if err != nil {
+				log.Printf("ERROR ingest: %v", err)
+				return err
+			}
+
+			if !ingestFlagsChanged(cmd) {
+				printIngestSettings(settings)
+				ok, err := confirmIngest(os.Stdin, os.Stdout)
+				if err != nil {
+					log.Printf("ERROR ingest: %v", err)
+					return err
+				}
+				if !ok {
+					fmt.Println("Cancelled.")
+					return nil
+				}
+			}
+
+			if err := runIngest(settings); err != nil {
 				log.Printf("ERROR ingest: %v", err)
 				return err
 			}
@@ -63,21 +85,91 @@ and save the FAISS bundle under ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>
 	return cmd
 }
 
-func runIngest(remote, branch string) error {
+type ingestSettings struct {
+	info      gitrepo.Info
+	cfg       config.Config
+	clonePath string
+	indexPath string
+}
+
+func ingestFlagsChanged(cmd *cobra.Command) bool {
+	return cmd.Flags().Changed("remote") || cmd.Flags().Changed("branch")
+}
+
+func resolveIngestSettings(remote, branch string) (ingestSettings, error) {
 	cfg, err := config.Load()
 	if err != nil {
-		return err
+		return ingestSettings{}, err
 	}
 
 	info, err := gitrepo.ResolveFromCWD(remote, branch)
 	if err != nil {
-		return err
+		return ingestSettings{}, err
+	}
+
+	clonePath, err := gitrepo.RepositoryDir(info)
+	if err != nil {
+		return ingestSettings{}, err
 	}
 
 	indexPath, err := gitrepo.IndexDir(info)
 	if err != nil {
-		return err
+		return ingestSettings{}, err
 	}
+
+	return ingestSettings{
+		info:      info,
+		cfg:       cfg,
+		clonePath: clonePath,
+		indexPath: indexPath,
+	}, nil
+}
+
+func printIngestSettings(s ingestSettings) {
+	fmt.Println("Ingest will run with these parameters:")
+	fmt.Printf("  remote (--remote, -r):     %s\n", s.info.RemoteName)
+	fmt.Printf("  branch (--branch, -b):     %s\n", s.info.Branch)
+	fmt.Printf("  remote URL:                %s\n", s.info.RemoteURL)
+	fmt.Printf("  repository:                %s/%s/%s\n", s.info.Host, s.info.User, s.info.Repository)
+	fmt.Printf("  clone path:                %s\n", s.clonePath)
+	fmt.Printf("  index path:                %s\n", s.indexPath)
+	fmt.Printf("  EMBEDDING_MODEL:           %s\n", s.cfg.EmbeddingModel)
+	fmt.Printf("  CHUNK_SIZE:                %d\n", s.cfg.ChunkSize)
+	fmt.Printf("  CHUNK_OVERLAP:             %d\n", s.cfg.ChunkOverlap)
+	fmt.Printf("  EMBED_BATCH_SIZE:          %d\n", s.cfg.EmbedBatchSize)
+	fmt.Printf("  EMBED_WORKERS:             %d\n", s.cfg.EmbedWorkers)
+}
+
+func confirmIngest(in io.Reader, out io.Writer) (bool, error) {
+	if f, ok := in.(*os.File); ok && !isTerminal(f) {
+		return false, fmt.Errorf("non-interactive stdin; pass --remote (-r) and/or --branch (-b) to skip confirmation")
+	}
+
+	fmt.Fprint(out, "Proceed with ingest? [y/N]: ")
+	answer, err := bufio.NewReader(in).ReadString('\n')
+	if err != nil && err != io.EOF {
+		return false, fmt.Errorf("read confirmation: %w", err)
+	}
+	switch strings.ToLower(strings.TrimSpace(answer)) {
+	case "y", "yes":
+		return true, nil
+	default:
+		return false, nil
+	}
+}
+
+func isTerminal(f *os.File) bool {
+	fi, err := f.Stat()
+	if err != nil {
+		return false
+	}
+	return fi.Mode()&os.ModeCharDevice != 0
+}
+
+func runIngest(s ingestSettings) error {
+	info := s.info
+	cfg := s.cfg
+	indexPath := s.indexPath
 
 	log.Printf("INFO git: %s/%s/%s branch %s", info.Host, info.User, info.Repository, info.Branch)
 	log.Printf("INFO git: remote %s -> %s", info.RemoteName, info.RemoteURL)
@@ -155,3 +247,4 @@ func runIngest(remote, branch string) error {
 	fmt.Printf("FAISS saved to: %s\n", indexPath)
 	return nil
 }
+
