@@ -9,8 +9,8 @@ import (
 	"github.com/knights-analytics/hugot"
 	"github.com/knights-analytics/hugot/pipelines"
 
-	"github.com/linka-ai/git-rag/internal/rag/config"
-	"github.com/linka-ai/git-rag/internal/rag/gitrepo"
+	"github.com/linka-ai/gragit/internal/rag/config"
+	"github.com/linka-ai/gragit/internal/rag/gitrepo"
 )
 
 const (

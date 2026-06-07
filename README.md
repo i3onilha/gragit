@@ -2,7 +2,7 @@
 
 Transform Git repositories into searchable context for AI agents and MCP clients.
 
-git-rag indexes a repository's source files into a local vector store keyed by remote, branch, and embedding model. Agents can retrieve relevant code and documentation chunks by semantic similarity instead of loading entire trees into context.
+gragit indexes a repository's source files into a local vector store keyed by remote, branch, and embedding model. Agents can retrieve relevant code and documentation chunks by semantic similarity instead of loading entire trees into context.
 
 ## How it works
 
@@ -39,13 +39,13 @@ The resulting index is designed to be consumed by query tools and MCP servers th
 ```bash
 git clone git@github.com:i3onilha/gragit.git
 cd gragit
-go build -o git-rag ./cmd/ingest/
+go build -o gragit ./cmd/ingest/
 ```
 
 Or install directly:
 
 ```bash
-go install github.com/linka-ai/git-rag/cmd/ingest@latest
+go install github.com/linka-ai/gragit/cmd/ingest@latest
 ```
 
 ## Quick start
@@ -53,7 +53,7 @@ go install github.com/linka-ai/git-rag/cmd/ingest@latest
 From inside a cloned Git repository with `origin` configured and a checked-out branch:
 
 ```bash
-git-rag ingest
+gragit ingest
 ```
 
 Example output:
@@ -147,12 +147,12 @@ internal/rag/
 
 ```bash
 go test ./...
-go build -o git-rag ./cmd/ingest/
+go build -o gragit ./cmd/ingest/
 ```
 
 ## Use with AI agents and MCP
 
-git-rag is the **indexing** side of the pipeline. The vector bundles it produces are intended for:
+gragit is the **indexing** side of the pipeline. The vector bundles it produces are intended for:
 
 - **Semantic code search** — Find functions, types, and docs related to a natural-language question.
 - **RAG context injection** — Supply top-*k* chunks to an LLM instead of whole files.

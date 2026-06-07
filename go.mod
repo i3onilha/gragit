@@ -1,4 +1,4 @@
-module github.com/linka-ai/git-rag
+module github.com/linka-ai/gragit
 
 go 1.26
 

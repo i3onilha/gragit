@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/linka-ai/git-rag/internal/rag/document"
+	"github.com/linka-ai/gragit/internal/rag/document"
 )
 
 var splitRegexCache = map[string]*regexp.Regexp{}
