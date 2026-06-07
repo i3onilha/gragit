@@ -2,7 +2,7 @@
 
 Transform Git repositories into searchable context for AI agents and MCP clients.
 
-gragit indexes a repository's source files into a local vector store keyed by remote, branch, and embedding model. Agents can retrieve relevant code and documentation chunks by semantic similarity instead of loading entire trees into context.
+ragcode indexes a repository's source files into a local vector store keyed by remote, branch, and embedding model. Agents can retrieve relevant code and documentation chunks by semantic similarity instead of loading entire trees into context.
 
 ## How it works
 
@@ -20,7 +20,7 @@ flowchart LR
 ```
 
 1. **Detect** — Reads `origin` and the current branch from the Git repository you run the command in.
-2. **Sync** — Clones or refreshes a mirror under `~/.gragit/repos/...`.
+2. **Sync** — Clones or refreshes a mirror under `~/.ragcode/repos/...`.
 3. **Ingest** — Walks the tree, loading text, HTML, and PDF files while skipping binaries, `node_modules`, `.git`, and other noise.
 4. **Chunk** — Splits documents with a recursive character splitter (LangChain-compatible defaults).
 5. **Embed** — Generates normalized sentence embeddings locally via [hugot](https://github.com/knights-analytics/hugot) and ONNX (no API keys required).
@@ -37,15 +37,15 @@ The resulting index is designed to be consumed by query tools and MCP servers th
 ## Installation
 
 ```bash
-git clone git@github.com:i3onilha/gragit.git
-cd gragit
-go build -o gragit ./cmd/gragit/
+git clone git@github.com:i3onilha/ragcode.git
+cd ragcode
+go build -o ragcode ./cmd/ragcode/
 ```
 
 Or install directly:
 
 ```bash
-go install github.com/i3onilha/gragit/cmd/gragit@latest
+go install github.com/i3onilha/ragcode/cmd/ragcode@latest
 ```
 
 ## Quick start
@@ -53,7 +53,7 @@ go install github.com/i3onilha/gragit/cmd/gragit@latest
 From inside a cloned Git repository with `origin` configured and a checked-out branch:
 
 ```bash
-gragit ingest
+ragcode ingest
 ```
 
 Example output:
@@ -61,16 +61,16 @@ Example output:
 ```
 INFO git: github.com/acme/my-project branch main
 INFO git: syncing remote https://github.com/acme/my-project.git
-INFO git: repository ready at /home/you/.gragit/repos/github.com/acme/my-project/main
+INFO git: repository ready at /home/you/.ragcode/repos/github.com/acme/my-project/main
 INFO pipeline: starting ingestion for ... @ a1b2c3d
 INFO ingestion: loaded internal/rag/config/config.go (1 segment(s))
 ...
 INFO chunking: split 142 document(s) into 891 chunk(s)
 INFO embeddings: downloading/loading model KnightsAnalytics/all-MiniLM-L6-v2
 INFO pipeline: embedding 891 chunk(s)
-INFO vectorstore: saved 891 vectors (dim=384) to /home/you/.gragit/indexes/...
-Indexed repository. Clone: /home/you/.gragit/repos/github.com/acme/my-project/main
-FAISS saved to: /home/you/.gragit/indexes/github.com/acme/my-project/main/all-MiniLM-L6-v2
+INFO vectorstore: saved 891 vectors (dim=384) to /home/you/.ragcode/indexes/...
+Indexed repository. Clone: /home/you/.ragcode/repos/github.com/acme/my-project/main
+FAISS saved to: /home/you/.ragcode/indexes/github.com/acme/my-project/main/all-MiniLM-L6-v2
 ```
 
 Re-running `ingest` fetches the latest `origin/<branch>`, re-indexes the clone, and overwrites the index for that branch and model.
@@ -81,23 +81,23 @@ After indexing, ask grounded questions about the repository using an LLM via [Op
 
 ```bash
 export OPENROUTER_API_KEY=sk-or-...
-gragit ask "How does authentication work?"
+ragcode ask "How does authentication work?"
 ```
 
 Or run interactively:
 
 ```bash
-gragit ask
+ragcode ask
 ```
 
 The command loads the index for the current repository (same remote/branch as `ingest`), retrieves the top-*k* relevant chunks, and generates an answer strictly from that context.
 
 ## Storage layout
 
-All caches live under `~/.gragit` by default (override with `GIT_FAISS_HOME`):
+All caches live under `~/.ragcode` by default (override with `GIT_FAISS_HOME`):
 
 ```
-~/.gragit/
+~/.ragcode/
 ├── cache/models/          # Downloaded ONNX embedding models
 ├── repos/
 │   └── <host>/<owner>/<repo>/<branch>/
@@ -130,13 +130,13 @@ Optional environment variables (also loadable from `.env`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GIT_FAISS_HOME` | `~/.gragit` | Root directory for clones, indexes, and model cache |
+| `GIT_FAISS_HOME` | `~/.ragcode` | Root directory for clones, indexes, and model cache |
 | `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Sentence-transformers model name (mapped to an ONNX build for hugot) |
 | `EMBED_BATCH_SIZE` | `4` | Texts per ONNX inference batch |
 | `EMBED_WORKERS` | `min(CPU count, 4)` | Concurrent embedding workers (hugot pipeline is thread-safe) |
 | `CHUNK_SIZE` | `1000` | Target chunk size in characters |
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks |
-| `TOP_K` | `5` | Number of chunks retrieved for `gragit ask` |
+| `TOP_K` | `5` | Number of chunks retrieved for `ragcode ask` |
 | `OPENROUTER_API_KEY` | — | API key for LLM answers (required for `ask`) |
 | `OPENROUTER_MODEL` | `google/gemma-3-12b-it:free` | Default chat model |
 | `OPENROUTER_RAG_MODEL` | — | Overrides `OPENROUTER_MODEL` for `ask` |
@@ -155,7 +155,7 @@ Each chunk retains a `source` metadata field with the file path, plus a `chunk_i
 ## Project structure
 
 ```
-cmd/gragit/              # CLI entrypoint (ingest + ask)
+cmd/ragcode/              # CLI entrypoint (ingest + ask)
 internal/rag/
 ├── chunking/            # Recursive text splitter
 ├── config/              # Environment-based settings
@@ -173,18 +173,18 @@ internal/rag/
 
 ```bash
 go test ./...
-go build -o gragit ./cmd/gragit/
+go build -o ragcode ./cmd/ragcode/
 ```
 
 ## Use with AI agents and MCP
 
-gragit provides both **indexing** (`ingest`) and **querying** (`ask`). The vector bundles it produces are intended for:
+ragcode provides both **indexing** (`ingest`) and **querying** (`ask`). The vector bundles it produces are intended for:
 
 - **Semantic code search** — Find functions, types, and docs related to a natural-language question.
 - **RAG context injection** — Supply top-*k* chunks to an LLM instead of whole files.
 - **MCP tools** — Expose `search_repo`, `get_chunk`, or similar tools backed by the on-disk index.
 
-Point your query layer or MCP server at the index path under `~/.gragit/indexes/<host>/<owner>/<repo>/<branch>/<model>/`. The `docstore.json` and `vectors.bin` files use an L2 metric layout compatible with FAISS-based retrieval.
+Point your query layer or MCP server at the index path under `~/.ragcode/indexes/<host>/<owner>/<repo>/<branch>/<model>/`. The `docstore.json` and `vectors.bin` files use an L2 metric layout compatible with FAISS-based retrieval.
 
 ## License
 

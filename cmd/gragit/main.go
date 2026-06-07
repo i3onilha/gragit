@@ -6,12 +6,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/i3onilha/gragit/internal/rag/chunking"
-	"github.com/i3onilha/gragit/internal/rag/config"
-	"github.com/i3onilha/gragit/internal/rag/embeddings"
-	"github.com/i3onilha/gragit/internal/rag/gitrepo"
-	"github.com/i3onilha/gragit/internal/rag/ingestion"
-	"github.com/i3onilha/gragit/internal/rag/vectorstore"
+	"github.com/i3onilha/ragcode/internal/rag/chunking"
+	"github.com/i3onilha/ragcode/internal/rag/config"
+	"github.com/i3onilha/ragcode/internal/rag/embeddings"
+	"github.com/i3onilha/ragcode/internal/rag/gitrepo"
+	"github.com/i3onilha/ragcode/internal/rag/ingestion"
+	"github.com/i3onilha/ragcode/internal/rag/vectorstore"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +31,7 @@ func main() {
 
 func newRootCmd() *cobra.Command {
 	root := &cobra.Command{
-		Use:   "gragit",
+		Use:   "ragcode",
 		Short: "Index Git repositories into a local vector store",
 	}
 
@@ -45,8 +45,8 @@ func newIngestCmd() *cobra.Command {
 		Use:   "ingest",
 		Short: "Clone a remote branch and build a FAISS index",
 		Long: `Detect a git remote from the current directory, clone or refresh the chosen
-branch under ~/.gragit/repos/<host>/<owner>/<repo>/<branch>, index the clone,
-and save the FAISS bundle under ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>.`,
+branch under ~/.ragcode/repos/<host>/<owner>/<repo>/<branch>, index the clone,
+and save the FAISS bundle under ~/.ragcode/indexes/<host>/<owner>/<repo>/<branch>.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			settings, err := resolveIngestSettings(remoteName, branchName)
 			if err != nil {

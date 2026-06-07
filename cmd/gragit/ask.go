@@ -8,9 +8,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/i3onilha/gragit/internal/rag/config"
-	"github.com/i3onilha/gragit/internal/rag/gitrepo"
-	"github.com/i3onilha/gragit/internal/rag/pipeline"
+	"github.com/i3onilha/ragcode/internal/rag/config"
+	"github.com/i3onilha/ragcode/internal/rag/gitrepo"
+	"github.com/i3onilha/ragcode/internal/rag/pipeline"
 	"github.com/spf13/cobra"
 )
 
@@ -36,7 +36,7 @@ Omit the question for interactive mode. Requires OPENROUTER_API_KEY in .env.`,
 			}
 
 			if !gitrepo.IndexBundleComplete(settings.indexPath) {
-				return fmt.Errorf("no index found at %s — run `gragit ingest` first", settings.indexPath)
+				return fmt.Errorf("no index found at %s — run `ragcode ingest` first", settings.indexPath)
 			}
 
 			printAskSettings(settings)

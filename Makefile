@@ -1,5 +1,5 @@
-BINARY   := gragit
-CMD      := ./cmd/gragit
+BINARY   := ragcode
+CMD      := ./cmd/ragcode
 GO       := go
 
 .PHONY: all build test test-race fmt vet tidy install clean help

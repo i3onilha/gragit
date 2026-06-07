@@ -6,12 +6,12 @@ import (
 	"log"
 	"strings"
 
-	"github.com/i3onilha/gragit/internal/rag/config"
-	"github.com/i3onilha/gragit/internal/rag/embeddings"
-	"github.com/i3onilha/gragit/internal/rag/gitrepo"
-	"github.com/i3onilha/gragit/internal/rag/generator"
-	"github.com/i3onilha/gragit/internal/rag/retriever"
-	"github.com/i3onilha/gragit/internal/rag/vectorstore"
+	"github.com/i3onilha/ragcode/internal/rag/config"
+	"github.com/i3onilha/ragcode/internal/rag/embeddings"
+	"github.com/i3onilha/ragcode/internal/rag/gitrepo"
+	"github.com/i3onilha/ragcode/internal/rag/generator"
+	"github.com/i3onilha/ragcode/internal/rag/retriever"
+	"github.com/i3onilha/ragcode/internal/rag/vectorstore"
 )
 
 // AskResult is the payload returned by Pipeline.Ask.

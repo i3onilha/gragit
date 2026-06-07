@@ -1,4 +1,4 @@
-module github.com/i3onilha/gragit
+module github.com/i3onilha/ragcode
 
 go 1.26
 

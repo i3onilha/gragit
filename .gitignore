@@ -30,6 +30,6 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
-gragit
-!cmd/gragit
+ragcode
+!cmd/ragcode
 prompt.md

@@ -42,7 +42,7 @@ type IndexManifest struct {
 
 const manifestFile = "manifest.json"
 
-// BaseDir returns the root directory for gragit caches (~/.gragit by default).
+// BaseDir returns the root directory for ragcode caches (~/.ragcode by default).
 func BaseDir() (string, error) {
 	if v := strings.TrimSpace(os.Getenv("GIT_FAISS_HOME")); v != "" {
 		return filepath.Clean(v), nil
@@ -51,10 +51,10 @@ func BaseDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".gragit"), nil
+	return filepath.Join(home, ".ragcode"), nil
 }
 
-// ModelsCacheDir returns ~/.gragit/cache/models.
+// ModelsCacheDir returns ~/.ragcode/cache/models.
 func ModelsCacheDir() (string, error) {
 	base, err := BaseDir()
 	if err != nil {
@@ -63,7 +63,7 @@ func ModelsCacheDir() (string, error) {
 	return filepath.Join(base, "cache", "models"), nil
 }
 
-// RepositoryDir returns ~/.gragit/repos/<host>/<owner>/<repo>/<branch>.
+// RepositoryDir returns ~/.ragcode/repos/<host>/<owner>/<repo>/<branch>.
 func RepositoryDir(info Info) (string, error) {
 	base, err := BaseDir()
 	if err != nil {
@@ -72,7 +72,7 @@ func RepositoryDir(info Info) (string, error) {
 	return filepath.Join(base, "repos", info.Host, info.User, info.Repository, sanitizeBranch(info.Branch)), nil
 }
 
-// IndexDir returns ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>.
+// IndexDir returns ~/.ragcode/indexes/<host>/<owner>/<repo>/<branch>.
 func IndexDir(info Info) (string, error) {
 	base, err := BaseDir()
 	if err != nil {

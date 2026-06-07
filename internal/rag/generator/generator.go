@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/i3onilha/gragit/internal/rag/config"
-	"github.com/i3onilha/gragit/internal/rag/document"
+	"github.com/i3onilha/ragcode/internal/rag/config"
+	"github.com/i3onilha/ragcode/internal/rag/document"
 )
 
 const ragPromptTemplate = `You are a helpful assistant that answers questions strictly based on the provided context.

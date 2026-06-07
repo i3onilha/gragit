@@ -11,8 +11,8 @@ import (
 	"github.com/knights-analytics/hugot/pipelines"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/i3onilha/gragit/internal/rag/config"
-	"github.com/i3onilha/gragit/internal/rag/gitrepo"
+	"github.com/i3onilha/ragcode/internal/rag/config"
+	"github.com/i3onilha/ragcode/internal/rag/gitrepo"
 )
 
 const (

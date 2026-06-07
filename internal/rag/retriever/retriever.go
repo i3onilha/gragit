@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/i3onilha/gragit/internal/rag/document"
-	"github.com/i3onilha/gragit/internal/rag/embeddings"
-	"github.com/i3onilha/gragit/internal/rag/vectorstore"
+	"github.com/i3onilha/ragcode/internal/rag/document"
+	"github.com/i3onilha/ragcode/internal/rag/embeddings"
+	"github.com/i3onilha/ragcode/internal/rag/vectorstore"
 )
 
 // Retrieve embeds the query and returns the top-k most similar chunks.
