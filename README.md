@@ -1,4 +1,4 @@
-# GRAGit
+# RAGCode
 
 Transform Git repositories into searchable context for AI agents and MCP clients.
 
