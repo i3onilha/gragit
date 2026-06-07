@@ -45,7 +45,7 @@ func newIngestCmd() *cobra.Command {
 		Short: "Clone a remote branch and build a FAISS index",
 		Long: `Detect a git remote from the current directory, clone or refresh the chosen
 branch under ~/.gragit/repos/<host>/<owner>/<repo>/<branch>, index the clone,
-and save the FAISS bundle under ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>/<model>.`,
+and save the FAISS bundle under ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>.`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := runIngest(remoteName, branchName); err != nil {
 				log.Printf("ERROR ingest: %v", err)
@@ -74,7 +74,7 @@ func runIngest(remote, branch string) error {
 		return err
 	}
 
-	indexPath, err := gitrepo.IndexDir(info, cfg.EmbeddingModel)
+	indexPath, err := gitrepo.IndexDir(info)
 	if err != nil {
 		return err
 	}

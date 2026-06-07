@@ -72,8 +72,8 @@ func RepositoryDir(info Info) (string, error) {
 	return filepath.Join(base, "repos", info.Host, info.User, info.Repository, sanitizeBranch(info.Branch)), nil
 }
 
-// IndexDir returns ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>/<embedding-model>.
-func IndexDir(info Info, embeddingModel string) (string, error) {
+// IndexDir returns ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>.
+func IndexDir(info Info) (string, error) {
 	base, err := BaseDir()
 	if err != nil {
 		return "", err
@@ -85,7 +85,6 @@ func IndexDir(info Info, embeddingModel string) (string, error) {
 		info.User,
 		info.Repository,
 		sanitizeBranch(info.Branch),
-		sanitizeModel(embeddingModel),
 	), nil
 }
 
@@ -235,10 +234,6 @@ func splitOwnerRepo(path string) (user, repo string, err error) {
 
 func sanitizeBranch(branch string) string {
 	return strings.ReplaceAll(branch, "/", "--")
-}
-
-func sanitizeModel(model string) string {
-	return strings.ReplaceAll(strings.TrimSpace(model), "/", "--")
 }
 
 func isGitRepo(dir string) bool {

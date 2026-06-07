@@ -56,13 +56,6 @@ func TestSanitizeBranch(t *testing.T) {
 	}
 }
 
-func TestSanitizeModel(t *testing.T) {
-	raw := "sentence-transformers/all-MiniLM-L6-v2"
-	if got := sanitizeModel(raw); got != "sentence-transformers--all-MiniLM-L6-v2" {
-		t.Fatalf("sanitizeModel() = %q", got)
-	}
-}
-
 func TestIndexDirLayout(t *testing.T) {
 	base := t.TempDir()
 	t.Setenv("GIT_FAISS_HOME", base)
@@ -73,11 +66,11 @@ func TestIndexDirLayout(t *testing.T) {
 		Repository: "my-project",
 		Branch:     "feature/login",
 	}
-	got, err := IndexDir(info, "all-MiniLM-L6-v2")
+	got, err := IndexDir(info)
 	if err != nil {
 		t.Fatalf("IndexDir() error = %v", err)
 	}
-	want := filepath.Join(base, "indexes", "github.com", "acme", "my-project", "feature--login", "all-MiniLM-L6-v2")
+	want := filepath.Join(base, "indexes", "github.com", "acme", "my-project", "feature--login")
 	if got != want {
 		t.Fatalf("IndexDir() = %q, want %q", got, want)
 	}
