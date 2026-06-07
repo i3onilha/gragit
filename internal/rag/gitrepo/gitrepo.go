@@ -163,6 +163,37 @@ func Sync(info Info) (string, error) {
 	return dest, nil
 }
 
+// IndexBundleComplete reports whether manifest.json, vectors.bin, and docstore.json exist.
+func IndexBundleComplete(indexPath string) bool {
+	for _, name := range []string{manifestFile, "vectors.bin", "docstore.json"} {
+		if _, err := os.Stat(filepath.Join(indexPath, name)); err != nil {
+			return false
+		}
+	}
+	return true
+}
+
+// ReadIndexManifest loads manifest.json from an index directory.
+func ReadIndexManifest(indexPath string) (IndexManifest, error) {
+	data, err := os.ReadFile(filepath.Join(indexPath, manifestFile))
+	if err != nil {
+		return IndexManifest{}, fmt.Errorf("read manifest: %w", err)
+	}
+	var manifest IndexManifest
+	if err := json.Unmarshal(data, &manifest); err != nil {
+		return IndexManifest{}, fmt.Errorf("parse manifest: %w", err)
+	}
+	return manifest, nil
+}
+
+// IndexMatchesSettings reports whether an existing manifest matches the given build parameters.
+func IndexMatchesSettings(manifest IndexManifest, commitSHA, embeddingModel string, chunkSize, chunkOverlap int) bool {
+	return manifest.CommitSHA == commitSHA &&
+		manifest.EmbeddingModel == embeddingModel &&
+		manifest.ChunkSize == chunkSize &&
+		manifest.ChunkOverlap == chunkOverlap
+}
+
 // WriteIndexManifest persists manifest.json inside an index directory.
 func WriteIndexManifest(indexPath string, manifest IndexManifest) error {
 	manifest.Version = 1

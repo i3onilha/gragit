@@ -187,6 +187,23 @@ func runIngest(s ingestSettings) error {
 	}
 
 	log.Printf("INFO pipeline: starting ingestion for %s @ %s", clonePath, commitSHA[:min(7, len(commitSHA))])
+
+	if gitrepo.IndexBundleComplete(indexPath) {
+		manifest, err := gitrepo.ReadIndexManifest(indexPath)
+		if err == nil && gitrepo.IndexMatchesSettings(
+			manifest,
+			commitSHA,
+			cfg.EmbeddingModel,
+			cfg.ChunkSize,
+			cfg.ChunkOverlap,
+		) {
+			log.Printf("INFO pipeline: index up to date (%d vectors, model %s)", manifest.VectorCount, manifest.EmbeddingModel)
+			fmt.Printf("Index already current. Clone: %s\n", clonePath)
+			fmt.Printf("FAISS index: %s\n", indexPath)
+			return nil
+		}
+	}
+
 	docs, err := ingestion.LoadDocuments([]string{clonePath})
 	if err != nil {
 		return err
