@@ -1,4 +1,4 @@
-# git-rag
+# GRAGit
 
 Transform Git repositories into searchable context for AI agents and MCP clients.
 
@@ -6,11 +6,17 @@ git-rag indexes a repository's source files into a local vector store keyed by r
 
 ## How it works
 
-```
-┌─────────────┐     ┌──────────┐     ┌──────────┐     ┌─────────────┐     ┌──────────────┐
-│  git repo   │────▶│  ingest  │────▶│  chunk   │────▶│  embed      │────▶│  FAISS index │
-│  (origin)   │     │  clone   │     │  split   │     │  (local)    │     │  + manifest  │
-└─────────────┘     └──────────┘     └──────────┘     └─────────────┘     └──────────────┘
+```mermaid
+flowchart LR
+    repo["Git repo<br/>(origin + branch)"]
+    detect["Detect"]
+    sync["Sync clone"]
+    ingest["Ingest files"]
+    chunk["Chunk text"]
+    embed["Embed<br/>(local ONNX)"]
+    index["FAISS index<br/>+ manifest"]
+
+    repo --> detect --> sync --> ingest --> chunk --> embed --> index
 ```
 
 1. **Detect** — Reads `origin` and the current branch from the Git repository you run the command in.
