@@ -29,7 +29,7 @@ Instructions:
 Answer:`
 
 const rateLimitMessage = `OpenRouter returned HTTP 429 (rate limited). Free models such as ` +
-	`google/gemma-3-12b-it:free are often throttled upstream.
+	`google/gemma-4-31b-it:free are often throttled upstream.
 
 Fix: set OPENROUTER_RAG_MODEL or OPENROUTER_MODEL to another model in .env ` +
 	`(for example openai/gpt-4o-mini), wait and retry, or add provider keys in ` +

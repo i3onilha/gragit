@@ -64,7 +64,7 @@ func Load() (Config, error) {
 	if ragModel := strings.TrimSpace(os.Getenv("OPENROUTER_RAG_MODEL")); ragModel != "" {
 		cfg.LLMModel = ragModel
 	} else {
-		cfg.LLMModel = envString("OPENROUTER_MODEL", "google/gemma-3-12b-it:free")
+		cfg.LLMModel = envString("OPENROUTER_MODEL", "google/gemma-4-31b-it:free")
 	}
 	if cfg.EmbedBatchSize < 1 {
 		cfg.EmbedBatchSize = 1

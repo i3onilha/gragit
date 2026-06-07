@@ -138,7 +138,7 @@ Optional environment variables (also loadable from `.env`):
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks |
 | `TOP_K` | `5` | Number of chunks retrieved for `rcode ask` |
 | `OPENROUTER_API_KEY` | — | API key for LLM answers (required for `ask`) |
-| `OPENROUTER_MODEL` | `google/gemma-3-12b-it:free` | Default chat model |
+| `OPENROUTER_MODEL` | `google/gemma-4-31b-it:free` | Default chat model |
 | `OPENROUTER_RAG_MODEL` | — | Overrides `OPENROUTER_MODEL` for `ask` |
 | `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | OpenRouter API base URL |
 
