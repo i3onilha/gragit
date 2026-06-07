@@ -20,7 +20,7 @@ flowchart LR
 ```
 
 1. **Detect** — Reads `origin` and the current branch from the Git repository you run the command in.
-2. **Sync** — Clones or refreshes a mirror under `~/.git-faiss/repos/...`.
+2. **Sync** — Clones or refreshes a mirror under `~/.gragit/repos/...`.
 3. **Ingest** — Walks the tree, loading text, HTML, and PDF files while skipping binaries, `node_modules`, `.git`, and other noise.
 4. **Chunk** — Splits documents with a recursive character splitter (LangChain-compatible defaults).
 5. **Embed** — Generates normalized sentence embeddings locally via [hugot](https://github.com/knights-analytics/hugot) and ONNX (no API keys required).
@@ -61,26 +61,26 @@ Example output:
 ```
 INFO git: github.com/acme/my-project branch main
 INFO git: syncing remote https://github.com/acme/my-project.git
-INFO git: repository ready at /home/you/.git-faiss/repos/github.com/acme/my-project/main
+INFO git: repository ready at /home/you/.gragit/repos/github.com/acme/my-project/main
 INFO pipeline: starting ingestion for ... @ a1b2c3d
 INFO ingestion: loaded internal/rag/config/config.go (1 segment(s))
 ...
 INFO chunking: split 142 document(s) into 891 chunk(s)
 INFO embeddings: downloading/loading model KnightsAnalytics/all-MiniLM-L6-v2
 INFO pipeline: embedding 891 chunk(s)
-INFO vectorstore: saved 891 vectors (dim=384) to /home/you/.git-faiss/indexes/...
-Indexed repository. Clone: /home/you/.git-faiss/repos/github.com/acme/my-project/main
-FAISS saved to: /home/you/.git-faiss/indexes/github.com/acme/my-project/main/all-MiniLM-L6-v2
+INFO vectorstore: saved 891 vectors (dim=384) to /home/you/.gragit/indexes/...
+Indexed repository. Clone: /home/you/.gragit/repos/github.com/acme/my-project/main
+FAISS saved to: /home/you/.gragit/indexes/github.com/acme/my-project/main/all-MiniLM-L6-v2
 ```
 
 Re-running `ingest` fetches the latest `origin/<branch>`, re-indexes the clone, and overwrites the index for that branch and model.
 
 ## Storage layout
 
-All caches live under `~/.git-faiss` by default (override with `GIT_FAISS_HOME`):
+All caches live under `~/.gragit` by default (override with `GIT_FAISS_HOME`):
 
 ```
-~/.git-faiss/
+~/.gragit/
 ├── cache/models/          # Downloaded ONNX embedding models
 ├── repos/
 │   └── <host>/<owner>/<repo>/<branch>/
@@ -113,7 +113,7 @@ Optional environment variables (also loadable from `.env`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GIT_FAISS_HOME` | `~/.git-faiss` | Root directory for clones, indexes, and model cache |
+| `GIT_FAISS_HOME` | `~/.gragit` | Root directory for clones, indexes, and model cache |
 | `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Sentence-transformers model name (mapped to an ONNX build for hugot) |
 | `CHUNK_SIZE` | `1000` | Target chunk size in characters |
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks |
@@ -158,7 +158,7 @@ gragit is the **indexing** side of the pipeline. The vector bundles it produces 
 - **RAG context injection** — Supply top-*k* chunks to an LLM instead of whole files.
 - **MCP tools** — Expose `search_repo`, `get_chunk`, or similar tools backed by the on-disk index.
 
-Point your query layer or MCP server at the index path under `~/.git-faiss/indexes/<host>/<owner>/<repo>/<branch>/<model>/`. The `docstore.json` and `vectors.bin` files use an L2 metric layout compatible with FAISS-based retrieval.
+Point your query layer or MCP server at the index path under `~/.gragit/indexes/<host>/<owner>/<repo>/<branch>/<model>/`. The `docstore.json` and `vectors.bin` files use an L2 metric layout compatible with FAISS-based retrieval.
 
 ## License
 

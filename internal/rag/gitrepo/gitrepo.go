@@ -41,7 +41,7 @@ type IndexManifest struct {
 
 const manifestFile = "manifest.json"
 
-// BaseDir returns the root directory for git-faiss caches (~/.git-faiss by default).
+// BaseDir returns the root directory for gragit caches (~/.gragit by default).
 func BaseDir() (string, error) {
 	if v := strings.TrimSpace(os.Getenv("GIT_FAISS_HOME")); v != "" {
 		return filepath.Clean(v), nil
@@ -50,10 +50,10 @@ func BaseDir() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".git-faiss"), nil
+	return filepath.Join(home, ".gragit"), nil
 }
 
-// ModelsCacheDir returns ~/.git-faiss/cache/models.
+// ModelsCacheDir returns ~/.gragit/cache/models.
 func ModelsCacheDir() (string, error) {
 	base, err := BaseDir()
 	if err != nil {
@@ -62,7 +62,7 @@ func ModelsCacheDir() (string, error) {
 	return filepath.Join(base, "cache", "models"), nil
 }
 
-// RepositoryDir returns ~/.git-faiss/repos/<host>/<owner>/<repo>/<branch>.
+// RepositoryDir returns ~/.gragit/repos/<host>/<owner>/<repo>/<branch>.
 func RepositoryDir(info Info) (string, error) {
 	base, err := BaseDir()
 	if err != nil {
@@ -71,7 +71,7 @@ func RepositoryDir(info Info) (string, error) {
 	return filepath.Join(base, "repos", info.Host, info.User, info.Repository, sanitizeBranch(info.Branch)), nil
 }
 
-// IndexDir returns ~/.git-faiss/indexes/<host>/<owner>/<repo>/<branch>/<embedding-model>.
+// IndexDir returns ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>/<embedding-model>.
 func IndexDir(info Info, embeddingModel string) (string, error) {
 	base, err := BaseDir()
 	if err != nil {

@@ -22,8 +22,8 @@ func main() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s ingest\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "\nDetect git origin from the current directory, clone or refresh under\n")
-		fmt.Fprintf(os.Stderr, "~/.git-faiss/repos/<host>/<owner>/<repo>/<branch>, index the clone, and save\n")
-		fmt.Fprintf(os.Stderr, "the FAISS bundle under ~/.git-faiss/indexes/<host>/<owner>/<repo>/<branch>/<model>.\n")
+		fmt.Fprintf(os.Stderr, "~/.gragit/repos/<host>/<owner>/<repo>/<branch>, index the clone, and save\n")
+		fmt.Fprintf(os.Stderr, "the FAISS bundle under ~/.gragit/indexes/<host>/<owner>/<repo>/<branch>/<model>.\n")
 	}
 	flag.Parse()
 
