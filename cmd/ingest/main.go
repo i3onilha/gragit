@@ -6,12 +6,12 @@ import (
 	"log"
 	"os"
 
-	"github.com/linka-ai/gragit/internal/rag/chunking"
-	"github.com/linka-ai/gragit/internal/rag/config"
-	"github.com/linka-ai/gragit/internal/rag/embeddings"
-	"github.com/linka-ai/gragit/internal/rag/gitrepo"
-	"github.com/linka-ai/gragit/internal/rag/ingestion"
-	"github.com/linka-ai/gragit/internal/rag/vectorstore"
+	"github.com/i3onilha/gragit/internal/rag/chunking"
+	"github.com/i3onilha/gragit/internal/rag/config"
+	"github.com/i3onilha/gragit/internal/rag/embeddings"
+	"github.com/i3onilha/gragit/internal/rag/gitrepo"
+	"github.com/i3onilha/gragit/internal/rag/ingestion"
+	"github.com/i3onilha/gragit/internal/rag/vectorstore"
 	"github.com/spf13/cobra"
 )
 

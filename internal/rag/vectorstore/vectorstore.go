@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/linka-ai/gragit/internal/rag/document"
+	"github.com/i3onilha/gragit/internal/rag/document"
 )
 
 const (

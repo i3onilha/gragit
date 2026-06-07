@@ -45,7 +45,7 @@ go build -o gragit ./cmd/ingest/
 Or install directly:
 
 ```bash
-go install github.com/linka-ai/gragit/cmd/ingest@latest
+go install github.com/i3onilha/gragit/cmd/ingest@latest
 ```
 
 ## Quick start

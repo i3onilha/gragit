@@ -1,4 +1,4 @@
-module github.com/linka-ai/gragit
+module github.com/i3onilha/gragit
 
 go 1.26
 

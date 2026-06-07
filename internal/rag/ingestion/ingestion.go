@@ -13,7 +13,7 @@ import (
 	"github.com/gen2brain/go-fitz"
 	"golang.org/x/net/html"
 
-	"github.com/linka-ai/gragit/internal/rag/document"
+	"github.com/i3onilha/gragit/internal/rag/document"
 )
 
 // skipDirNames are never descended into during directory ingest.
