@@ -14,6 +14,7 @@ type Config struct {
 	ChunkSize      int
 	ChunkOverlap   int
 	TopK           int
+	EmbedBatchSize int
 	EmbeddingModel string
 	FAISSIndexPath string
 }
@@ -27,8 +28,12 @@ func Load() (Config, error) {
 		ChunkSize:      envInt("CHUNK_SIZE", 1000),
 		ChunkOverlap:   envInt("CHUNK_OVERLAP", 200),
 		TopK:           envInt("TOP_K", 5),
+		EmbedBatchSize: envInt("EMBED_BATCH_SIZE", 4),
 		EmbeddingModel: envString("EMBEDDING_MODEL", "all-MiniLM-L6-v2"),
 		FAISSIndexPath: envString("FAISS_INDEX_PATH", "faiss_index"),
+	}
+	if cfg.EmbedBatchSize < 1 {
+		cfg.EmbedBatchSize = 1
 	}
 
 	indexPath := cfg.FAISSIndexPath

@@ -17,6 +17,7 @@ type Info struct {
 	User       string
 	Repository string
 	Branch     string
+	RemoteName string
 	RemoteURL  string
 	WorkDir    string
 }
@@ -88,30 +89,35 @@ func IndexDir(info Info, embeddingModel string) (string, error) {
 	), nil
 }
 
-// ResolveFromCWD reads origin remote and current branch from the git repo containing cwd.
-func ResolveFromCWD() (Info, error) {
+const defaultRemoteName = "origin"
+const defaultBranch = "develop"
+
+// ResolveFromCWD reads the configured remote and branch from the git repo containing cwd.
+func ResolveFromCWD(remoteName, branch string) (Info, error) {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return Info{}, err
 	}
-	return Resolve(cwd)
+	return Resolve(cwd, remoteName, branch)
 }
 
-// Resolve reads origin remote and current branch from the git repo containing workDir.
-func Resolve(workDir string) (Info, error) {
+// Resolve reads the given remote and branch from the git repo containing workDir.
+func Resolve(workDir, remoteName, branch string) (Info, error) {
+	if strings.TrimSpace(remoteName) == "" {
+		remoteName = defaultRemoteName
+	}
+	if strings.TrimSpace(branch) == "" {
+		branch = defaultBranch
+	}
+
 	root, err := gitOutput(workDir, "rev-parse", "--show-toplevel")
 	if err != nil {
 		return Info{}, fmt.Errorf("not a git repository (run from inside a cloned repo): %w", err)
 	}
 
-	remoteURL, err := gitOutput(root, "remote", "get-url", "origin")
+	remoteURL, err := gitOutput(root, "remote", "get-url", remoteName)
 	if err != nil {
-		return Info{}, fmt.Errorf("no origin remote configured: %w", err)
-	}
-
-	branch, err := gitOutput(root, "branch", "--show-current")
-	if err != nil || strings.TrimSpace(branch) == "" {
-		return Info{}, fmt.Errorf("detached HEAD or no current branch; checkout a branch first")
+		return Info{}, fmt.Errorf("no %s remote configured: %w", remoteName, err)
 	}
 
 	host, user, repo, err := parseRemoteURL(remoteURL)
@@ -124,6 +130,7 @@ func Resolve(workDir string) (Info, error) {
 		User:       user,
 		Repository: repo,
 		Branch:     strings.TrimSpace(branch),
+		RemoteName: strings.TrimSpace(remoteName),
 		RemoteURL:  strings.TrimSpace(remoteURL),
 		WorkDir:    root,
 	}, nil
@@ -134,7 +141,7 @@ func CommitSHA(dir string) (string, error) {
 	return gitOutput(dir, "rev-parse", "HEAD")
 }
 
-// Sync clones the remote repository or refreshes an existing clone to match origin/<branch>.
+// Sync clones the remote repository or refreshes an existing clone to match remotes/<remote>/<branch>.
 func Sync(info Info) (string, error) {
 	dest, err := RepositoryDir(info)
 	if err != nil {
@@ -171,13 +178,14 @@ func WriteIndexManifest(indexPath string, manifest IndexManifest) error {
 }
 
 func refreshClone(dest, branch string) error {
-	if err := runGit(dest, "fetch", "origin"); err != nil {
-		return fmt.Errorf("fetch origin: %w", err)
+	// Synced clones are created with `git clone` and always name the remote "origin".
+	if err := runGit(dest, "fetch", defaultRemoteName); err != nil {
+		return fmt.Errorf("fetch %s: %w", defaultRemoteName, err)
 	}
 	if err := runGit(dest, "checkout", branch); err != nil {
 		return fmt.Errorf("checkout %s: %w", branch, err)
 	}
-	ref := "origin/" + branch
+	ref := defaultRemoteName + "/" + branch
 	if err := runGit(dest, "reset", "--hard", ref); err != nil {
 		return fmt.Errorf("reset --hard %s: %w", ref, err)
 	}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"runtime"
 
 	"github.com/knights-analytics/hugot"
 	"github.com/knights-analytics/hugot/pipelines"
@@ -14,15 +15,15 @@ import (
 )
 
 const (
-	embedBatchSize = 16
 	// all-MiniLM-L6-v2 max sequence is 512 tokens; keep a safe character budget.
 	maxEmbedRunes = 600
 )
 
 // Embedder generates normalized sentence embeddings locally via hugot.
 type Embedder struct {
-	session  *hugot.Session
-	pipeline *pipelines.FeatureExtractionPipeline
+	session   *hugot.Session
+	pipeline  *pipelines.FeatureExtractionPipeline
+	batchSize int
 }
 
 // New creates an embedder for the configured model.
@@ -64,9 +65,15 @@ func New(ctx context.Context, cfg config.Config) (*Embedder, error) {
 		return nil, fmt.Errorf("create embedding pipeline: %w", err)
 	}
 
+	batchSize := cfg.EmbedBatchSize
+	if batchSize < 1 {
+		batchSize = 1
+	}
+
 	return &Embedder{
-		session:  session,
-		pipeline: pipeline,
+		session:   session,
+		pipeline:  pipeline,
+		batchSize: batchSize,
 	}, nil
 }
 
@@ -90,8 +97,10 @@ func (e *Embedder) EmbedTexts(ctx context.Context, texts []string) ([][]float32,
 	}
 
 	vectors := make([][]float32, 0, len(texts))
-	for start := 0; start < len(prepared); start += embedBatchSize {
-		end := start + embedBatchSize
+	runtime.GC()
+
+	for start := 0; start < len(prepared); start += e.batchSize {
+		end := start + e.batchSize
 		if end > len(prepared) {
 			end = len(prepared)
 		}
@@ -101,6 +110,8 @@ func (e *Embedder) EmbedTexts(ctx context.Context, texts []string) ([][]float32,
 			return nil, fmt.Errorf("embed batch %d-%d: %w", start, end, err)
 		}
 		vectors = append(vectors, batchVectors...)
+		log.Printf("INFO embeddings: %d/%d chunk(s) embedded", end, len(prepared))
+		runtime.GC()
 	}
 	return vectors, nil
 }
