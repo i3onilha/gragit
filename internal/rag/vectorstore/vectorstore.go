@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"path/filepath"
+	"sort"
+	"strconv"
 
 	"github.com/google/uuid"
 
@@ -32,7 +35,120 @@ type docstorePayload struct {
 	Docs                map[string]storedDoc `json:"docs"`
 }
 
-// Save writes a Go-produced FAISS-compatible index bundle for the Python ask command.
+// Index is an in-memory flat L2 index loaded from docstore.json + vectors.bin.
+type Index struct {
+	dimension int
+	vectors   [][]float32
+	documents []document.Document
+}
+
+// Load reads a Go-produced FAISS-compatible index bundle from disk.
+func Load(indexPath string) (*Index, error) {
+	docstorePath := filepath.Join(indexPath, docstoreFile)
+	vectorsPath := filepath.Join(indexPath, vectorsFile)
+
+	docstoreBytes, err := os.ReadFile(docstorePath)
+	if err != nil {
+		return nil, fmt.Errorf("read docstore: %w", err)
+	}
+	vectorBytes, err := os.ReadFile(vectorsPath)
+	if err != nil {
+		return nil, fmt.Errorf("read vectors: %w", err)
+	}
+
+	var payload docstorePayload
+	if err := json.Unmarshal(docstoreBytes, &payload); err != nil {
+		return nil, fmt.Errorf("parse docstore: %w", err)
+	}
+
+	expectedBytes := payload.Count * payload.Dimension * 4
+	if len(vectorBytes) != expectedBytes {
+		return nil, fmt.Errorf(
+			"vectors.bin size mismatch: got %d bytes, expected %d",
+			len(vectorBytes), expectedBytes,
+		)
+	}
+
+	flat := make([]float32, payload.Count*payload.Dimension)
+	for i := range flat {
+		flat[i] = math.Float32frombits(binary.LittleEndian.Uint32(vectorBytes[i*4 : (i+1)*4]))
+	}
+
+	vectors := make([][]float32, payload.Count)
+	documents := make([]document.Document, payload.Count)
+	for i := 0; i < payload.Count; i++ {
+		start := i * payload.Dimension
+		end := start + payload.Dimension
+		vectors[i] = flat[start:end]
+
+		docID, ok := payload.IndexToDocstoreID[strconv.Itoa(i)]
+		if !ok {
+			return nil, fmt.Errorf("missing docstore id for index position %d", i)
+		}
+		stored, ok := payload.Docs[docID]
+		if !ok {
+			return nil, fmt.Errorf("missing document for id %s", docID)
+		}
+		documents[i] = document.Document{
+			PageContent: stored.PageContent,
+			Metadata:    stored.Metadata,
+		}
+	}
+
+	log.Printf("INFO vectorstore: loaded %d vectors (dim=%d) from %s", payload.Count, payload.Dimension, indexPath)
+	return &Index{
+		dimension: payload.Dimension,
+		vectors:   vectors,
+		documents: documents,
+	}, nil
+}
+
+type scoredDoc struct {
+	score float64
+	doc   document.Document
+}
+
+// Search returns up to topK documents ordered by ascending L2 distance.
+func (idx *Index) Search(query []float32, topK int) []document.Document {
+	if len(idx.vectors) == 0 {
+		return nil
+	}
+	if topK < 1 {
+		topK = 1
+	}
+
+	scored := make([]scoredDoc, len(idx.vectors))
+	for i, vec := range idx.vectors {
+		scored[i] = scoredDoc{
+			score: l2Distance(query, vec),
+			doc:   idx.documents[i],
+		}
+	}
+
+	sort.Slice(scored, func(i, j int) bool {
+		return scored[i].score < scored[j].score
+	})
+
+	if topK > len(scored) {
+		topK = len(scored)
+	}
+	out := make([]document.Document, topK)
+	for i := 0; i < topK; i++ {
+		out[i] = scored[i].doc
+	}
+	return out
+}
+
+func l2Distance(a, b []float32) float64 {
+	var sum float64
+	for i := range a {
+		diff := float64(a[i]) - float64(b[i])
+		sum += diff * diff
+	}
+	return sum
+}
+
+// Save writes a Go-produced FAISS-compatible index bundle.
 func Save(indexPath string, chunks []document.Document, vectors [][]float32) error {
 	if len(chunks) == 0 {
 		return fmt.Errorf("no chunks to index")

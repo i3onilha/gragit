@@ -94,6 +94,18 @@ func (e *Embedder) Close() error {
 	return e.session.Destroy()
 }
 
+// EmbedQuery returns a normalized embedding vector for a single query string.
+func (e *Embedder) EmbedQuery(ctx context.Context, query string) ([]float32, error) {
+	vectors, err := e.EmbedTexts(ctx, []string{query})
+	if err != nil {
+		return nil, err
+	}
+	if len(vectors) == 0 {
+		return nil, fmt.Errorf("empty embedding for query")
+	}
+	return vectors[0], nil
+}
+
 // EmbedTexts returns one normalized embedding vector per input string.
 func (e *Embedder) EmbedTexts(ctx context.Context, texts []string) ([][]float32, error) {
 	if len(texts) == 0 {

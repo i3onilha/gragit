@@ -1,5 +1,5 @@
 BINARY   := gragit
-CMD      := ./cmd/ingest
+CMD      := ./cmd/gragit
 GO       := go
 
 .PHONY: all build test test-race fmt vet tidy install clean help

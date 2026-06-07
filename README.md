@@ -39,13 +39,13 @@ The resulting index is designed to be consumed by query tools and MCP servers th
 ```bash
 git clone git@github.com:i3onilha/gragit.git
 cd gragit
-go build -o gragit ./cmd/ingest/
+go build -o gragit ./cmd/gragit/
 ```
 
 Or install directly:
 
 ```bash
-go install github.com/i3onilha/gragit/cmd/ingest@latest
+go install github.com/i3onilha/gragit/cmd/gragit@latest
 ```
 
 ## Quick start
@@ -74,6 +74,23 @@ FAISS saved to: /home/you/.gragit/indexes/github.com/acme/my-project/main/all-Mi
 ```
 
 Re-running `ingest` fetches the latest `origin/<branch>`, re-indexes the clone, and overwrites the index for that branch and model.
+
+### Ask questions
+
+After indexing, ask grounded questions about the repository using an LLM via [OpenRouter](https://openrouter.ai/):
+
+```bash
+export OPENROUTER_API_KEY=sk-or-...
+gragit ask "How does authentication work?"
+```
+
+Or run interactively:
+
+```bash
+gragit ask
+```
+
+The command loads the index for the current repository (same remote/branch as `ingest`), retrieves the top-*k* relevant chunks, and generates an answer strictly from that context.
 
 ## Storage layout
 
@@ -119,7 +136,11 @@ Optional environment variables (also loadable from `.env`):
 | `EMBED_WORKERS` | `min(CPU count, 4)` | Concurrent embedding workers (hugot pipeline is thread-safe) |
 | `CHUNK_SIZE` | `1000` | Target chunk size in characters |
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks |
-| `TOP_K` | `5` | Default retrieval count (used by query tooling) |
+| `TOP_K` | `5` | Number of chunks retrieved for `gragit ask` |
+| `OPENROUTER_API_KEY` | — | API key for LLM answers (required for `ask`) |
+| `OPENROUTER_MODEL` | `google/gemma-3-12b-it:free` | Default chat model |
+| `OPENROUTER_RAG_MODEL` | — | Overrides `OPENROUTER_MODEL` for `ask` |
+| `OPENROUTER_BASE_URL` | `https://openrouter.ai/api/v1` | OpenRouter API base URL |
 
 ## What gets indexed
 
@@ -134,27 +155,30 @@ Each chunk retains a `source` metadata field with the file path, plus a `chunk_i
 ## Project structure
 
 ```
-cmd/ingest/              # CLI entrypoint
+cmd/gragit/              # CLI entrypoint (ingest + ask)
 internal/rag/
 ├── chunking/            # Recursive text splitter
 ├── config/              # Environment-based settings
 ├── document/            # Document type
 ├── embeddings/          # Local ONNX embeddings (hugot)
+├── generator/           # OpenRouter LLM answer generation
 ├── gitrepo/             # Remote detection, clone/sync, paths
 ├── ingestion/           # File loading and filtering
-└── vectorstore/         # FAISS-compatible index writer
+├── pipeline/            # Ask orchestration (retrieve + generate)
+├── retriever/           # Semantic chunk retrieval
+└── vectorstore/         # FAISS-compatible index read/write
 ```
 
 ## Development
 
 ```bash
 go test ./...
-go build -o gragit ./cmd/ingest/
+go build -o gragit ./cmd/gragit/
 ```
 
 ## Use with AI agents and MCP
 
-gragit is the **indexing** side of the pipeline. The vector bundles it produces are intended for:
+gragit provides both **indexing** (`ingest`) and **querying** (`ask`). The vector bundles it produces are intended for:
 
 - **Semantic code search** — Find functions, types, and docs related to a natural-language question.
 - **RAG context injection** — Supply top-*k* chunks to an LLM instead of whole files.
