@@ -39,13 +39,13 @@ The resulting index is designed to be consumed by query tools and MCP servers th
 ```bash
 git clone git@github.com:i3onilha/ragcode.git
 cd ragcode
-go build -o ragcode ./cmd/ragcode/
+go build -o rcode ./cmd/rcode/
 ```
 
 Or install directly:
 
 ```bash
-go install github.com/i3onilha/ragcode/cmd/ragcode@latest
+go install github.com/i3onilha/ragcode/cmd/rcode@latest
 ```
 
 ## Quick start
@@ -53,7 +53,7 @@ go install github.com/i3onilha/ragcode/cmd/ragcode@latest
 From inside a cloned Git repository with `origin` configured and a checked-out branch:
 
 ```bash
-ragcode ingest
+rcode ingest
 ```
 
 Example output:
@@ -81,7 +81,7 @@ After indexing, ask grounded questions about the repository using an LLM via [Op
 
 ```bash
 export OPENROUTER_API_KEY=sk-or-...
-ragcode ask "How does authentication work?"
+rcode ask "How does authentication work?"
 ```
 
 Or run interactively:
@@ -136,7 +136,7 @@ Optional environment variables (also loadable from `.env`):
 | `EMBED_WORKERS` | `min(CPU count, 4)` | Concurrent embedding workers (hugot pipeline is thread-safe) |
 | `CHUNK_SIZE` | `1000` | Target chunk size in characters |
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks |
-| `TOP_K` | `5` | Number of chunks retrieved for `ragcode ask` |
+| `TOP_K` | `5` | Number of chunks retrieved for `rcode ask` |
 | `OPENROUTER_API_KEY` | — | API key for LLM answers (required for `ask`) |
 | `OPENROUTER_MODEL` | `google/gemma-3-12b-it:free` | Default chat model |
 | `OPENROUTER_RAG_MODEL` | — | Overrides `OPENROUTER_MODEL` for `ask` |
@@ -155,7 +155,7 @@ Each chunk retains a `source` metadata field with the file path, plus a `chunk_i
 ## Project structure
 
 ```
-cmd/ragcode/              # CLI entrypoint (ingest + ask)
+cmd/rcode/              # CLI entrypoint (ingest + ask)
 internal/rag/
 ├── chunking/            # Recursive text splitter
 ├── config/              # Environment-based settings
@@ -173,7 +173,7 @@ internal/rag/
 
 ```bash
 go test ./...
-go build -o ragcode ./cmd/ragcode/
+go build -o rcode ./cmd/rcode/
 ```
 
 ## Use with AI agents and MCP

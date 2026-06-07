@@ -36,7 +36,7 @@ Omit the question for interactive mode. Requires OPENROUTER_API_KEY in .env.`,
 			}
 
 			if !gitrepo.IndexBundleComplete(settings.indexPath) {
-				return fmt.Errorf("no index found at %s — run `ragcode ingest` first", settings.indexPath)
+				return fmt.Errorf("no index found at %s — run `rcode ingest` first", settings.indexPath)
 			}
 
 			printAskSettings(settings)

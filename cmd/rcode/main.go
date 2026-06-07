@@ -31,7 +31,7 @@ func main() {
 
 func newRootCmd() *cobra.Command {
 	root := &cobra.Command{
-		Use:   "ragcode",
+		Use:   "rcode",
 		Short: "Index Git repositories into a local vector store",
 	}
 

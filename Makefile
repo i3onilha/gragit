@@ -1,5 +1,5 @@
-BINARY   := ragcode
-CMD      := ./cmd/ragcode
+BINARY   := rcode
+CMD      := ./cmd/rcode
 GO       := go
 
 .PHONY: all build test test-race fmt vet tidy install clean help
