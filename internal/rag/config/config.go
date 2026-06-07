@@ -3,11 +3,23 @@ package config
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
 	"github.com/joho/godotenv"
 )
+
+func defaultEmbedWorkers() int {
+	n := runtime.NumCPU()
+	if n > 4 {
+		return 4
+	}
+	if n < 1 {
+		return 1
+	}
+	return n
+}
 
 // Config holds tunable RAG settings for ingestion.
 type Config struct {
@@ -15,6 +27,7 @@ type Config struct {
 	ChunkOverlap   int
 	TopK           int
 	EmbedBatchSize int
+	EmbedWorkers   int
 	EmbeddingModel string
 	FAISSIndexPath string
 }
@@ -29,11 +42,15 @@ func Load() (Config, error) {
 		ChunkOverlap:   envInt("CHUNK_OVERLAP", 200),
 		TopK:           envInt("TOP_K", 5),
 		EmbedBatchSize: envInt("EMBED_BATCH_SIZE", 4),
+		EmbedWorkers:   envInt("EMBED_WORKERS", 0),
 		EmbeddingModel: envString("EMBEDDING_MODEL", "all-MiniLM-L6-v2"),
 		FAISSIndexPath: envString("FAISS_INDEX_PATH", "faiss_index"),
 	}
 	if cfg.EmbedBatchSize < 1 {
 		cfg.EmbedBatchSize = 1
+	}
+	if cfg.EmbedWorkers < 1 {
+		cfg.EmbedWorkers = defaultEmbedWorkers()
 	}
 
 	indexPath := cfg.FAISSIndexPath

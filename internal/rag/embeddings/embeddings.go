@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"runtime"
+	"sync/atomic"
 
 	"github.com/knights-analytics/hugot"
 	"github.com/knights-analytics/hugot/pipelines"
+	"golang.org/x/sync/errgroup"
 
 	"github.com/linka-ai/gragit/internal/rag/config"
 	"github.com/linka-ai/gragit/internal/rag/gitrepo"
@@ -24,6 +25,7 @@ type Embedder struct {
 	session   *hugot.Session
 	pipeline  *pipelines.FeatureExtractionPipeline
 	batchSize int
+	workers   int
 }
 
 // New creates an embedder for the configured model.
@@ -69,11 +71,18 @@ func New(ctx context.Context, cfg config.Config) (*Embedder, error) {
 	if batchSize < 1 {
 		batchSize = 1
 	}
+	workers := cfg.EmbedWorkers
+	if workers < 1 {
+		workers = 1
+	}
+
+	log.Printf("INFO embeddings: batch size %d, workers %d", batchSize, workers)
 
 	return &Embedder{
 		session:   session,
 		pipeline:  pipeline,
 		batchSize: batchSize,
+		workers:   workers,
 	}, nil
 }
 
@@ -96,22 +105,58 @@ func (e *Embedder) EmbedTexts(ctx context.Context, texts []string) ([][]float32,
 		prepared[i] = truncateForEmbedding(text)
 	}
 
-	vectors := make([][]float32, 0, len(texts))
-	runtime.GC()
+	vectors := make([][]float32, len(prepared))
+	if e.workers == 1 {
+		return e.embedSequential(ctx, prepared, vectors)
+	}
+	return e.embedConcurrent(ctx, prepared, vectors)
+}
 
+func (e *Embedder) embedSequential(ctx context.Context, prepared []string, vectors [][]float32) ([][]float32, error) {
 	for start := 0; start < len(prepared); start += e.batchSize {
 		end := start + e.batchSize
 		if end > len(prepared) {
 			end = len(prepared)
 		}
-		batch := prepared[start:end]
-		batchVectors, err := e.embedBatch(ctx, batch)
+		batchVectors, err := e.embedBatch(ctx, prepared[start:end])
 		if err != nil {
 			return nil, fmt.Errorf("embed batch %d-%d: %w", start, end, err)
 		}
-		vectors = append(vectors, batchVectors...)
+		copy(vectors[start:end], batchVectors)
 		log.Printf("INFO embeddings: %d/%d chunk(s) embedded", end, len(prepared))
-		runtime.GC()
+	}
+	return vectors, nil
+}
+
+func (e *Embedder) embedConcurrent(ctx context.Context, prepared []string, vectors [][]float32) ([][]float32, error) {
+	var completed atomic.Int64
+	total := int64(len(prepared))
+
+	g, ctx := errgroup.WithContext(ctx)
+	g.SetLimit(e.workers)
+
+	for start := 0; start < len(prepared); start += e.batchSize {
+		start := start
+		end := start + e.batchSize
+		if end > len(prepared) {
+			end = len(prepared)
+		}
+
+		g.Go(func() error {
+			batchVectors, err := e.embedBatch(ctx, prepared[start:end])
+			if err != nil {
+				return fmt.Errorf("embed batch %d-%d: %w", start, end, err)
+			}
+			copy(vectors[start:end], batchVectors)
+
+			done := completed.Add(int64(end - start))
+			log.Printf("INFO embeddings: %d/%d chunk(s) embedded", done, total)
+			return nil
+		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 	return vectors, nil
 }

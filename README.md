@@ -115,6 +115,8 @@ Optional environment variables (also loadable from `.env`):
 |----------|---------|-------------|
 | `GIT_FAISS_HOME` | `~/.gragit` | Root directory for clones, indexes, and model cache |
 | `EMBEDDING_MODEL` | `all-MiniLM-L6-v2` | Sentence-transformers model name (mapped to an ONNX build for hugot) |
+| `EMBED_BATCH_SIZE` | `4` | Texts per ONNX inference batch |
+| `EMBED_WORKERS` | `min(CPU count, 4)` | Concurrent embedding workers (hugot pipeline is thread-safe) |
 | `CHUNK_SIZE` | `1000` | Target chunk size in characters |
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks |
 | `TOP_K` | `5` | Default retrieval count (used by query tooling) |
