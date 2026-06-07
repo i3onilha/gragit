@@ -87,7 +87,7 @@ rcode ask "How does authentication work?"
 Or run interactively:
 
 ```bash
-ragcode ask
+rcode ask
 ```
 
 The command loads the index for the current repository (same remote/branch as `ingest`), retrieves the top-*k* relevant chunks, and generates an answer strictly from that context.
