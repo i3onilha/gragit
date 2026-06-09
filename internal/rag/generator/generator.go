@@ -19,7 +19,8 @@ const ragPromptTemplate = `You are a helpful assistant that answers questions st
 Context:
 %s
 
-Question: %s
+Question:
+%s
 
 Instructions:
 - Answer using ONLY the information in the context above.
